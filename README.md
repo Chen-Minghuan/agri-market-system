@@ -43,8 +43,6 @@ agri-market-system/
 │       ├── api/               # axios 封装与接口
 │       ├── router/            # 路由
 │       └── views/             # 产品/分类/产地/订单/统计 五个页面
-├── start-backend.bat                # Windows 一键启动后端
-├── start-frontend.bat               # Windows 一键启动前端
 └── README.md
 ```
 
@@ -81,8 +79,6 @@ npm run dev
 ```
 
 **4. 访问**：浏览器打开 <http://localhost:5173>
-
-> Windows 也可双击根目录的 `start-backend.bat` 与 `start-frontend.bat` 启动。
 
 ## 🔌 主要接口（前缀 `/api`）
 
