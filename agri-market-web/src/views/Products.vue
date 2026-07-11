@@ -31,6 +31,19 @@
 
       <el-table :data="products" v-loading="loading" border stripe>
         <el-table-column prop="id" label="ID" width="60" />
+        <el-table-column label="封面" width="84">
+          <template #default="{ row }">
+            <el-image
+              v-if="row.cover"
+              :src="row.cover"
+              :preview-src-list="[row.cover]"
+              fit="cover"
+              preview-teleported
+              style="width: 48px; height: 48px; border-radius: 4px"
+            />
+            <span v-else class="no-img">无图</span>
+          </template>
+        </el-table-column>
         <el-table-column prop="name" label="商品名称" min-width="140" />
         <el-table-column label="分类" width="110">
           <template #default="{ row }">{{ row.category?.name || '-' }}</template>
@@ -85,7 +98,21 @@
           <el-input v-model="form.unit" placeholder="如：斤/公斤/份" style="width: 160px" />
         </el-form-item>
         <el-form-item label="封面图">
-          <el-input v-model="form.cover" placeholder="图片 URL（选填）" />
+          <div class="cover-uploader">
+            <el-image v-if="form.cover" :src="form.cover" fit="cover" class="cover-preview" />
+            <div class="cover-actions">
+              <el-upload
+                action="/api/upload"
+                accept="image/*"
+                :show-file-list="false"
+                :before-upload="beforeCoverUpload"
+                :on-success="handleCoverSuccess"
+              >
+                <el-button :icon="Upload">{{ form.cover ? '更换图片' : '上传图片' }}</el-button>
+              </el-upload>
+              <el-button v-if="form.cover" text type="danger" @click="form.cover = ''">移除图片</el-button>
+            </div>
+          </div>
         </el-form-item>
         <el-form-item label="描述">
           <el-input v-model="form.description" type="textarea" :rows="2" />
@@ -108,7 +135,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, Search, Refresh, Edit, Delete } from '@element-plus/icons-vue'
+import { Plus, Search, Refresh, Edit, Delete, Upload } from '@element-plus/icons-vue'
 import { productApi, categoryApi, originApi } from '../api'
 
 const products = ref([])
@@ -190,6 +217,24 @@ const remove = async (row) => {
   loadProducts()
 }
 
+// 图片上传：校验类型与大小
+const beforeCoverUpload = (file) => {
+  const isImage = file.type && file.type.startsWith('image/')
+  const isLt5M = file.size / 1024 / 1024 < 5
+  if (!isImage) ElMessage.error('只能上传图片文件')
+  if (!isLt5M) ElMessage.error('图片大小不能超过 5MB')
+  return isImage && isLt5M
+}
+// 上传成功：后端返回 { code, data: { url } }（el-upload 不走 axios 拦截器，需自行解析）
+const handleCoverSuccess = (res) => {
+  if (res && res.code === 0) {
+    form.cover = res.data.url
+    ElMessage.success('图片上传成功')
+  } else {
+    ElMessage.error((res && res.message) || '图片上传失败')
+  }
+}
+
 onMounted(() => {
   loadOptions()
   loadProducts()
@@ -199,4 +244,8 @@ onMounted(() => {
 <style scoped>
 .card-header { display: flex; justify-content: space-between; align-items: center; }
 .filter { margin-bottom: 8px; }
+.no-img { color: #bbb; font-size: 12px; }
+.cover-uploader { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+.cover-preview { width: 120px; height: 120px; border-radius: 6px; border: 1px solid #ebeef5; }
+.cover-actions { display: flex; align-items: center; gap: 8px; }
 </style>

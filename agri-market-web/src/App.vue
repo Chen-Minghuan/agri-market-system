@@ -2,7 +2,7 @@
   <el-container class="layout">
     <el-header class="header">
       <div class="logo">🌾 乡村助农 · 农产品信息展示与售卖管理系统</div>
-      <div class="subtitle">课程实训项目</div>
+      <div class="subtitle">产地直供 · 助农增收</div>
     </el-header>
     <el-container>
       <el-aside width="220px" class="aside">

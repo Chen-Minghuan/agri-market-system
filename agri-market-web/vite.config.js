@@ -11,6 +11,11 @@ export default defineConfig({
       '/api': {
         target: 'http://localhost:8081',
         changeOrigin: true
+      },
+      // 上传的图片走同一后端静态资源，开发期一并代理
+      '/uploads': {
+        target: 'http://localhost:8081',
+        changeOrigin: true
       }
     }
   }
