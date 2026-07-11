@@ -13,6 +13,20 @@ DROP TABLE IF EXISTS orders;
 DROP TABLE IF EXISTS product;
 DROP TABLE IF EXISTS origin;
 DROP TABLE IF EXISTS category;
+DROP TABLE IF EXISTS user;
+
+-- 用户（管理员 / 农户 / 消费者）
+CREATE TABLE user (
+    id          BIGINT       NOT NULL AUTO_INCREMENT,
+    username    VARCHAR(50)  NOT NULL,
+    password    VARCHAR(100) NOT NULL COMMENT 'BCrypt 哈希',
+    nickname    VARCHAR(50)  NULL,
+    role        VARCHAR(20)  NOT NULL COMMENT 'ADMIN/FARMER/CONSUMER',
+    enabled     TINYINT(1)   NOT NULL DEFAULT 1,
+    create_time DATETIME(6)  NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_user_username (username)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
 
 -- 商品分类
 CREATE TABLE category (
@@ -42,6 +56,7 @@ CREATE TABLE product (
     name        VARCHAR(100)   NOT NULL,
     category_id BIGINT         NULL,
     origin_id   BIGINT         NULL,
+    farmer_id   BIGINT         NULL COMMENT '所属农户用户 id（admin 公共产品为 null）',
     price       DECIMAL(10, 2) NOT NULL,
     stock       INT            NOT NULL DEFAULT 0,
     unit        VARCHAR(20)    NULL,
@@ -53,6 +68,7 @@ CREATE TABLE product (
     PRIMARY KEY (id),
     KEY idx_product_category (category_id),
     KEY idx_product_origin (origin_id),
+    KEY idx_product_farmer (farmer_id),
     CONSTRAINT fk_product_category FOREIGN KEY (category_id) REFERENCES category (id),
     CONSTRAINT fk_product_origin FOREIGN KEY (origin_id) REFERENCES origin (id)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
@@ -61,6 +77,7 @@ CREATE TABLE product (
 CREATE TABLE orders (
     id           BIGINT         NOT NULL AUTO_INCREMENT,
     order_no     VARCHAR(32)    NOT NULL,
+    customer_id  BIGINT         NULL COMMENT '下单消费者用户 id',
     buyer_name   VARCHAR(50)    NOT NULL,
     buyer_phone  VARCHAR(30)    NULL,
     buyer_address VARCHAR(200)  NULL,
@@ -69,7 +86,8 @@ CREATE TABLE orders (
     remark       VARCHAR(500)   NULL,
     create_time  DATETIME(6)    NULL,
     PRIMARY KEY (id),
-    UNIQUE KEY uk_orders_no (order_no)
+    UNIQUE KEY uk_orders_no (order_no),
+    KEY idx_orders_customer (customer_id)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
 
 -- 订单明细

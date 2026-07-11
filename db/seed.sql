@@ -3,6 +3,8 @@
 -- 前提：库表已存在（已执行 schema.sql，或后端以 ddl-auto=update 启动后自动建表）
 -- 用法：mysql -u root -p agrimarket < db/seed.sql
 -- 特性：可重复执行 —— 先清空业务表再插入；订单不预置，可在前端「模拟下单」体验
+-- 说明：user 表不在此重置；演示账号由后端启动时自动创建（admin/farmer/consumer，密码 123456），
+--       且后端会把 farmer_id 为空的产品自动分配给 farmer 账号，故本脚本无需处理 farmer_id。
 -- ============================================================
 
 USE agrimarket;
