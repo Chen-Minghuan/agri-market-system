@@ -1,9 +1,7 @@
 <template>
   <!-- 登录/注册等公开页：裸渲染，不显示管理布局 -->
   <router-view v-if="isPublic" v-slot="{ Component }">
-    <transition name="fade" mode="out-in">
-      <component :is="Component" />
-    </transition>
+    <component :is="Component" v-if="Component" :key="route.fullPath" />
   </router-view>
 
   <!-- 管理布局：侧边栏 + 顶栏 + 主内容 -->
@@ -18,7 +16,13 @@
       </div>
       <el-menu :default-active="$route.path" router class="menu">
         <el-menu-item v-if="hasRole('admin', 'farmer', 'consumer')" index="/products">
-          <el-icon><Goods /></el-icon><span>{{ role() === 'consumer' ? '农产品' : '农产品管理' }}</span>
+          <el-icon><Goods /></el-icon><span>全部产品</span>
+        </el-menu-item>
+        <el-menu-item v-if="hasRole('admin')" index="/admin/products">
+          <el-icon><Box /></el-icon><span>产品管理</span>
+        </el-menu-item>
+        <el-menu-item v-if="hasRole('farmer')" index="/my-products">
+          <el-icon><Box /></el-icon><span>我的产品</span>
         </el-menu-item>
         <el-menu-item v-if="hasRole('consumer')" index="/cart">
           <el-icon><ShoppingCart /></el-icon><span>购物车</span>
@@ -30,7 +34,13 @@
           <el-icon><Menu /></el-icon><span>分类管理</span>
         </el-menu-item>
         <el-menu-item v-if="hasRole('admin')" index="/origins">
-          <el-icon><Location /></el-icon><span>产地公示</span>
+          <el-icon><Location /></el-icon><span>产地管理</span>
+        </el-menu-item>
+        <el-menu-item v-if="hasRole('farmer')" index="/my-origins">
+          <el-icon><Location /></el-icon><span>我的产地</span>
+        </el-menu-item>
+        <el-menu-item v-if="hasRole('admin')" index="/users">
+          <el-icon><UserFilled /></el-icon><span>用户管理</span>
         </el-menu-item>
         <el-menu-item v-if="hasRole('admin', 'farmer', 'consumer')" index="/orders">
           <el-icon><List /></el-icon><span>{{ role() === 'consumer' ? '我的订单' : '订单管理' }}</span>
@@ -67,9 +77,7 @@
       </el-header>
       <el-main class="main">
         <router-view v-slot="{ Component }">
-          <transition name="fade" mode="out-in">
-            <component :is="Component" />
-          </transition>
+          <component :is="Component" v-if="Component" :key="route.fullPath" />
         </router-view>
       </el-main>
     </el-container>
@@ -177,8 +185,6 @@ const onCommand = async (cmd) => {
 .uname { font-size: 13px; color: #1f2d3d; font-weight: 600; }
 .avatar { background: var(--brand); color: #fff; font-weight: 600; }
 
-.main { background: var(--bg-page); padding: 20px; }
-
-.fade-enter-active, .fade-leave-active { transition: opacity 0.18s ease; }
-.fade-enter-from, .fade-leave-to { opacity: 0; }
+.layout > .el-container { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.main { background: var(--bg-page); padding: 20px; overflow: auto; flex: 1; }
 </style>

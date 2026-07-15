@@ -1,5 +1,17 @@
 <template>
-  <div class="stats-page">
+  <div class="stats-page" v-loading="loading">
+    <div class="stats-head">
+      <div class="stats-title">{{ scopeTitle }}</div>
+      <div class="stats-sub">{{ scopeSub }}</div>
+    </div>
+    <el-alert
+      v-if="loadError"
+      type="error"
+      :title="loadError"
+      show-icon
+      :closable="false"
+      style="margin-bottom: 16px"
+    />
     <!-- 总览卡片 -->
     <el-row :gutter="16" class="overview">
       <el-col :xs="12" :sm="12" :md="6" v-for="card in cards" :key="card.title" class="overview-col">
@@ -141,11 +153,16 @@
 import { ref, computed, onMounted, markRaw } from 'vue'
 import { Goods, Tickets, Histogram, Money } from '@element-plus/icons-vue'
 import { statsApi } from '../api'
+import { role } from '../stores/user'
 
 const overview = ref({ productCount: 0, orderCount: 0, totalQuantity: 0, totalAmount: 0 })
 const byCategory = ref([])
 const topProducts = ref([])
 const tip = ref(null)
+const loading = ref(false)
+const loadError = ref('')
+const scopeTitle = computed(() => role() === 'farmer' ? '我的经营数据' : '全局经营数据')
+const scopeSub = computed(() => role() === 'farmer' ? '仅统计我的商品、相关订单和销售表现' : '统计平台全部商品、订单和销售表现')
 
 const palette = ['#2e7d32', '#43a047', '#66bb6a', '#fb8c00', '#42a5f5', '#8e24aa']
 
@@ -256,15 +273,36 @@ const moveTip = (e) => {
 const hideTip = () => { tip.value = null }
 
 onMounted(async () => {
-  const [o, c, t] = await Promise.all([statsApi.overview(), statsApi.byCategory(), statsApi.topProducts(5)])
-  overview.value = o
-  byCategory.value = c || []
-  topProducts.value = t || []
+  loading.value = true
+  loadError.value = ''
+  try {
+    const [o, c, t] = await Promise.all([
+      statsApi.overview({ silentError: true }),
+      statsApi.byCategory({ silentError: true }),
+      statsApi.topProducts(5, { silentError: true })
+    ])
+    overview.value = o || { productCount: 0, orderCount: 0, totalQuantity: 0, totalAmount: 0 }
+    byCategory.value = c || []
+    topProducts.value = t || []
+  } catch (e) {
+    loadError.value = e?.message || '统计数据加载失败，请确认后端已启动并重新登录'
+  } finally {
+    loading.value = false
+  }
 })
 </script>
 
 <style scoped>
 .stats-page { position: relative; }
+.stats-head {
+  margin-bottom: 16px;
+  padding: 14px 16px;
+  border: 1px solid #e6eee6;
+  border-radius: 12px;
+  background: #fbfdfb;
+}
+.stats-title { font-size: 18px; font-weight: 800; color: #1f2d3d; }
+.stats-sub { margin-top: 4px; font-size: 13px; color: #7a8a7a; }
 .overview-col { margin-bottom: 16px; }
 .stat-card { border-radius: 12px; transition: transform 0.18s ease, box-shadow 0.18s ease; }
 .stat-card:hover { transform: translateY(-3px); }
